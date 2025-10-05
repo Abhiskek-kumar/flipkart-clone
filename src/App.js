@@ -5,7 +5,7 @@ import Home from './components/home/Home';
 import Detailview from './components/dettails/Detailview';
 import Cart from './components/cart/Cart';
 import LoginPlaceOrder from './components/LoginPlaceOrder/LoginPlaceOrder';
- import PaymentOpstion from './payments/PaymentOpstion';
+ import PaymentOption from './payments/PaymentOption';
 import { Box } from '@mui/material';
 import { BrowserRouter, Routes ,Route} from 'react-router-dom';
 
@@ -20,7 +20,7 @@ function App() {
           <Route path='product/:id' element ={<Detailview/>}/>
           <Route path='/cart' element ={<Cart/>}/>
             <Route path="/LoginplaceOrder" element={<LoginPlaceOrder />} /> 
-               <Route path="/PaymentOpstion" element={<PaymentOpstion />} />
+               <Route path="/PaymentOption" element={<PaymentOption />} />
           </Routes>
           
         </Box>

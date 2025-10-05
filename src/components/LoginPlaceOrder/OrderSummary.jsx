@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from "@emotion/styled";
-import {   Typography } from "@mui/material";
+import {Typography} from "@mui/material";
 import MuiAccordion from "@mui/material/Accordion";
 import AccordionSummary from "@mui/material/AccordionSummary";
 import AccordionDetails from "@mui/material/AccordionDetails";
@@ -39,7 +39,6 @@ const OrderSummary = () => {
                     <Typography variant="h6"><StepNumber>3</StepNumber> Order Summary </Typography>
                 </AccordionSummary>
                 <WhiteAccordionDetails >
-                     
                     <Deliver/>
                 {/* <Cart/> */}
                 </WhiteAccordionDetails>

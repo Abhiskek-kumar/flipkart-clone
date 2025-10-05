@@ -74,7 +74,7 @@ const Deliver = () => {
 
           </LeftComponent>
           <ButtonWrapper   >
-            <StyledButton component={Link} to="/PaymentOpstion ">
+            <StyledButton component={Link} to="/PaymentOption ">
               CONTINUE
             </StyledButton>
           </ButtonWrapper>

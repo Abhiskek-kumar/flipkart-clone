@@ -1,76 +1,54 @@
 import React from 'react';
-import { Typography, Grid, Box, Button, styled } from "@mui/material";
+import {
+  Box, Typography, Button, Grid, Link, styled, Radio, RadioGroup, FormControlLabel,
+  TextField, List, ListItemButton, Divider
+} from "@mui/material";
+import { CreditCard, Gift, Truck, Calendar } from "lucide-react";
+import RadioButton from '@mui/icons-material/RadioButtonChecked';
+import { Wallet } from "lucide-react";
 import LeftIcon from '@mui/icons-material/KeyboardBackspace';
 import LockIcon from '@mui/icons-material/LockOutline';
 import Paper from '@mui/material/Paper';
-import { useEffect, useState } from "react";
-import Radio from '@mui/material/Radio';
-import RadioGroup from '@mui/material/RadioGroup';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import { TextField } from "@mui/material";
-import TotalView from '../components/cart/TotalView';
+import { useState } from "react";
 import { useSelector } from "react-redux";
-import CartPaymentList from './CartPaymentList';
-//accprdion
-import MuiAccordion from "@mui/material/Accordion";
-import AccordionSummary from "@mui/material/AccordionSummary";
-import AccordionDetails from "@mui/material/AccordionDetails";
-import { List, ListItemButton, ListItemText, Divider, } from "@mui/material";
-const Container = styled(Grid)(({ theme }) => ({
-    padding: "30px 50px  ",
-    background: "#dbdbdbff",
-    [theme.breakpoints.down("md")]: {
-        padding: "20px 20px",
-    },
-    [theme.breakpoints.down("sm")]: {
-        padding: "8px",
-    },
-}));
-const StyledLockIcon = styled(LockIcon)(({ theme }) => ({
-    fontSize: "15px",
-    cursor: "pointer",
-    marginTop: "2px",
+import AccountBalance from '@mui/icons-material/AccountBalance';
+import CheckBoxIcon from '@mui/icons-material/CheckBox';
 
+//container
+const Container = styled(Grid)(({ theme }) => ({
+  padding: "30px 50px  ",
+  background: "#dbdbdbff",
+  [theme.breakpoints.down("md")]: {
+    padding: "20px 20px",
+  },
+  [theme.breakpoints.down("sm")]: {
+    padding: "8px",
+  },
 }));
-const StyledButton = styled(Button)(({ theme }) => ({
-    background: "#808080",
-    color: "#fff",
-    width: "100%",
-    height: "38px",
-    fontWeight: "600",
-    borderRadius: "5px",
-    fontSize: "14px",
-    [theme.breakpoints.down("sm")]: {
-        width: "100%",
-        fontSize: "13px",
-    },
+
+const StyledLockIcon = styled(LockIcon)(({ theme }) => ({
+  fontSize: "15px",
+  cursor: "pointer",
+  marginTop: "2px",
 }));
+
 const LeftComponent = styled(Grid)(({ theme }) => ({
-    width: "100%",
-    padding: "16px",
-    paddingBottom: "20px",
-    borderRadius: "12px",
-    display: "flex",
-    background: "#ffffffff",
-    gap: "10px",
-    color: "#212121",
-    fontWeight: "600",
-    fontSize: "18px",
-    [theme.breakpoints.down("sm")]: {
-        marginBottom: 15,
-        paddingRight: 0,
-    },
+  width: "100%",
+  padding: "16px",
+  paddingBottom: "20px",
+  borderRadius: "12px",
+  display: "flex",
+  background: "#ffffffff",
+  gap: "10px",
+  color: "#212121",
+  fontWeight: "600",
+  fontSize: "18px",
+  [theme.breakpoints.down("sm")]: {
+    marginBottom: 15,
+    paddingRight: 0,
+  },
 }));
-const Pay = styled(Grid)(({ theme }) => ({
-    paddingBottom: "20px",
-    display: "flex",
-    color: "#212121",
-    fontSize: "14px",
-    [theme.breakpoints.down("sm")]: {
-        marginBottom: 15,
-        paddingRight: 0,
-    },
-}));
+
 const Floating = styled(Box)`
 margin-left: auto;
   font-size: 14px;
@@ -78,21 +56,18 @@ margin-left: auto;
   padding: 2px 6px;
   border-radius: 6px;
 `;
-const Howto = styled(Box)`
-margin-left: auto;
-  font-size: 14px;
-  background: #f5f5f5;
-  display: flex;
-  align-items: center;
-  padding: 2px 6px;
-  border-radius: 6px;
+
+const Leftside = styled(Box)`
+margin-left:25px;
 `;
+
+
 const Item = styled(Paper)(({ theme }) => ({
-    backgroundColor: '#fff',
-    padding: theme.spacing(1),
-    ...theme.applyStyles('dark', {
-        backgroundColor: '#1A2027',
-    }),
+  backgroundColor: '#fff',
+  padding: theme.spacing(1),
+  ...theme.applyStyles('dark', {
+    backgroundColor: '#1A2027',
+  }),
 }));
 
 const StyledFinelpemt = styled(Box)`
@@ -103,329 +78,472 @@ const StyledFinelpemt = styled(Box)`
 `;
 const CartPayment = styled(Grid)`
 `;
-const StyledText = styled(Typography)`
-font-size:13px;
-color:#878787;
-`;
-//acordion
-const BlueAccordion = styled(MuiAccordion)(() => ({
-    backgroundColor: "#ffffffff",
-    color: "black",
 
-}));
+const PaymentOption = () => {
+  // Cart items from redux store
+  const { cartItems } = useSelector((state) => state.cart);
+  const totalPrice = cartItems.reduce((acc, item) => acc + item.price.mrp, 0);
+  const totalDiscount = cartItems.reduce(
+    (acc, item) => acc + (item.price.mrp - item.price.cost),
+    0
+  );
+  //UPI payment state
+  const [selectedMethod, setSelectedMethod] = useState("upi");
+  const methods = [
+    { id: "upi", label: "UPI", sub: "Pay by any UPI app", info: "Save upto ₹50 • 5 offers available", icon: <Wallet size={18} />, },
+    {
+      id: "card", label: "Credit / Debit / ATM Card", sub: "Add and secure cards as per RBI guidelines",
+      info: "5% cashback on Flipkart Axis Bank Credit Card upto ₹4,000 per statement quarter", icon: <CreditCard size={18} />,
+    },
+    { id: "emi", label: "EMI", sub: "Get Debit and Cardless EMIs on HDFC Bank", icon: <Calendar size={18} />, disabled: true, },
+    { id: "netbanking", label: "Net Banking", icon: <AccountBalance size={10} /> },
+    { id: "cod", label: "Cash on Delivery", icon: <Truck size={18} /> },
+    { id: "giftcard", label: "Have a Flipkart Gift Card?", icon: <Gift size={18} />, },
 
-const WhiteAccordionDetails = styled(AccordionDetails)(() => ({
-    backgroundColor: "white",
-    color: "black",
-    display: "flex"
+  ];
 
-}));
+  // Card payment state
+  const [cardNumber, setCardNumber] = useState("");
+  const [validThru, setValidThru] = useState("");
+  const [cvv, setCvv] = useState("");
+  const [cardNumberError, setCardNumberError] = useState(false);
 
-const PaymentOpstion = () => {
-    const [activeId, setActiveId] = useState("");
-    useEffect(() => {
-        const sections = document.querySelectorAll("h4, h5 ");
-        const observer = new IntersectionObserver(
-            (entries) => { entries.forEach((entry) => { if (entry.isIntersecting) { setActiveId(entry.target.id); } }); },
-            { threshold: 0.6 });
-        sections.forEach((section) => observer.observe(section));
-        return () => observer.disconnect();
-    }, []);
-    const navItems = [
-        { id: "UPI", label: "UPI", children: [] },
-        { id: "Credit / Debit / ATM Card", label: "Credit / Debit / ATM Card" },
-        { id: "Net Banking", label: "Net Banking", children: [], },
-        { id: "Cash on Delivery", label: "Cash on Delivery", children: [] },
-        { id: "Have a Flipkart Gift Card?", label: "Have a Flipkart Gift Card?" },
+  const handlePayment = () => {
+    if (!cardNumber) {
+      setCardNumberError(true);
+      return;
+    }
+    alert("Payment initiated for ₹19,893");
+  };
 
-    ];
-    const { cartItems } = useSelector((state) => state.cart);
-    //required
-    const [Card, setCard] = useState("");
-    const [UPI, setUPI] = useState("");
-    const [Valid, setValid] = useState("");
-    const [CVV, setCVV] = useState("");
-    const [Voucher, setVoucher] = useState("");
-    const [Pin, setPin] = useState("");
-    const [errors, setErrors] = useState({});
+  //EMI payment state
+  const [selectedBank, setSelectedBank] = useState("icici1");
+  const banks = [
+    {
+      id: "icici1",
+      name: "ICICI Bank",
+      emi: "No Cost EMI ₹2,431/m",
+      logo: "https://static-assets-web.flixcart.com/fk-p-linchpin-web/fk-gringotts/images/banks/ICICI.svg",
+    },
+    {
+      id: "icici2",
+      name: "ICICI Bank",
+      emi: "No Cost EMI ₹2,431/m",
+      logo: "https://static-assets-web.flixcart.com/fk-p-linchpin-web/fk-gringotts/images/banks/ICICI.svg",
+    },
+    {
+      id: "Axis Bank3",
+      name: "Axis Bank",
+      emi: "No Cost EMI ₹2,431/m",
+      logo: "https://static-assets-web.flixcart.com/fk-p-linchpin-web/fk-gringotts/images/banks/AXIS.svg",
+    },
+    {
+      id: "SBI",
+      name: "SBI",
+      emi: "No Cost EMI ₹2,431/m",
+      logo: "https://static-assets-web.flixcart.com/fk-p-linchpin-web/fk-gringotts/images/banks/SBI.svg",
+    },
+    {
+      id: "HDFC Bank",
+      name: "HDFC Bank",
+      emi: "No Cost EMI ₹2,431/m",
+      logo: "https://static-assets-web.flixcart.com/fk-p-linchpin-web/fk-gringotts/images/banks/HDFC.svg",
+    },
+    {
+      id: "Federal Bank",
+      name: "Federal Bank",
+      emi: "No Cost EMI ₹2,431/m",
+      logo: "https://static-assets-web.flixcart.com/fk-p-linchpin-web/fk-gringotts/images/banks/FEDERAL.svg",
+    },
+    {
+      id: "Indian Overseas Bank",
+      name: "Indian Overseas Bank",
+      emi: "No Cost EMI ₹2,431/m",
+      logo: "https://static-assets-web.flixcart.com/fk-p-linchpin-web/fk-gringotts/images/banks/IOB.svg",
+    },
+  ];
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        let newErrors = {};
+  //Netbanking payment 
+  const [selectedBank1, setSelectedBank1] = useState("sbi");
 
-        if (!/^[A-Za-z ]{2,}$/.test(UPI)) {
-            newErrors.UPI = "This field is required";
-        }
-        if (!/^\d{16}$/.test(Card)) {
-            newErrors.Card = "Please enter your Card number of 16 digits";
-        } if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(Valid)) {
-            newErrors.Valid = "Enter valid month/year (MM/YY)";
-        } if (!/^[0-9]\d{9}$/.test(CVV)) {
-            newErrors.CVV = "Enter CVV number";
-        }
-        if (!/^[0-9]\d{9}$/.test(Voucher)) {
-            newErrors.Voucher = " Enter the Voucher number";
-        }
-        if (!/^[0-9]\d{5}$/.test(Pin)) {
-            newErrors.Pin = "Please enter Pin number";
-        }
-        setErrors(newErrors);
+  const banks1 = [
+    {
+      id: "sbi",
+      name: "State Bank of India",
+      logo: "https://static-assets-web.flixcart.com/fk-p-linchpin-web/fk-gringotts/images/banks/SBI.svg",
+      amount: "₹19,639",
+    },
+    {
+      id: "hdfc",
+      name: "HDFC Bank",
+      logo: "https://static-assets-web.flixcart.com/fk-p-linchpin-web/fk-gringotts/images/banks/HDFC.svg",
+      amount: "₹19,639",
+    },
+    {
+      id: "icici",
+      name: "ICICI Bank",
+      logo: "https://static-assets-web.flixcart.com/fk-p-linchpin-web/fk-gringotts/images/banks/ICICI.svg",
+      amount: "₹19,639",
+    },
+    {
+      id: "kotak",
+      name: "Kotak Mahindra Bank",
+      logo: "https://static-assets-web.flixcart.com/fk-p-linchpin-web/fk-gringotts/images/banks/KOTAK.svg",
+      amount: "₹19,639",
+    },
+    {
+      id: "axis",
+      name: "Axis Bank",
+      logo: "https://static-assets-web.flixcart.com/fk-p-linchpin-web/fk-gringotts/images/banks/AXIS.svg",
+      amount: "₹19,639",
+    },
+    {
+      id: "Federal Bank",
+      name: "Federal Bank",
+      logo: "https://static-assets-web.flixcart.com/fk-p-linchpin-web/fk-gringotts/images/banks/FEDERAL.svg",
+      amount: "₹19,639",
+    },
+    {
+      id: "Indian Overseas Bank",
+      name: "Indian Overseas Bank",
+      logo: "https://static-assets-web.flixcart.com/fk-p-linchpin-web/fk-gringotts/images/banks/IOB.svg",
+      amount: "₹19,639",
+    },
+  ];
 
-        if (Object.keys(newErrors).length === 0) {
-            alert(` successgully`);
-        }
-    };
 
-    return (
-        <div>
-            <Container container  >
-                <Box sx={{ flexGrow: 1 }}>
-                    <Grid container spacing={2}>
-                        <Grid size={12}>
-                            <Item>
-                                <LeftComponent>
-                                    <LeftIcon /> Complete Payment   <Floating  ><StyledLockIcon />100% Secure </Floating>
-                                </LeftComponent>
-                                <StyledFinelpemt>
-                                    <Grid size={8} >
-                                        <Box sx={{ display: "flex", height: "500px", border: "1px solid #e0e0e0", borderRadius: "8px" }}>
-                                            <Box sx={{ minWidth: "400px", background: " white" }} >
-                                                <Divider />
-                                                <List component="nav" style={{ background: "#ffffffff" }} >
-                                                    {navItems.map((item) => (
-                                                        <React.Fragment key={item.id}>
-                                                            <ListItemButton onClick={() => setActiveId(item.id)}
-                                                                selected={activeId === item.id} >
-                                                                <ListItemText primary={item.label} />
-                                                            </ListItemButton>
-                                                        </React.Fragment>
-                                                    ))}
-                                                </List>
+  // Have a Flipkart Gift Card
+  const [voucherNumber, setVoucherNumber] = useState("");
+  const [voucherPin, setVoucherPin] = useState("");
+  return (
+    <div>
+      <Container container  >
+        <Box sx={{ flexGrow: 1 }}>
+          <Grid container spacing={2}>
+            <Grid size={12}>
+              <Item>
+                <LeftComponent>
+                  <LeftIcon /> Complete Payment   <Floating  >
+                    <StyledLockIcon />
+                    100% Secure </Floating>
+                </LeftComponent>
+                <StyledFinelpemt>
+                  <Grid size={8} >
+                    <Box sx={{ display: "flex", height: "500px", border: "1px solid #e0e0e0", borderRadius: "8px" }}>
+                      <Box sx={{ display: "flex", gap: 2, width: 900 }}  >
+                        {/* Left Column: Payment Methods   */}
+                        <Box sx={{ flex: 1, background: "#fff" }}>
+                          <List>
+                            {methods.map((method) => (
+                              <ListItemButton key={method.id} selected={selectedMethod === method.id}
+                                onClick={() => setSelectedMethod(method.id)}>
+                                <Box sx={{ display: "flex", flexDirection: "column" }}>
+                                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                    {method.icon}
+                                    <Typography>{method.label}</Typography>
+                                  </Box>
+                                  {method.sub && (
+                                    <Typography variant="body2" color="text.secondary">
+                                      {method.sub}
+                                    </Typography>
+                                  )}
+                                  {method.info && (
+                                    <Typography variant="body2" color="success.main">
+                                      {method.info}
+                                    </Typography>
+                                  )}
+                                </Box>
+                              </ListItemButton>
+                            ))}
+                          </List>
+                        </Box>
+                        {/* Right Column: Payment Details */}
+                        <Box sx={{ flex: 1, background: "#fff", padding: 2, }} >
+                          {/* UPI */}
+                          {selectedMethod === "upi" && (
+                            <>
+                              <Typography variant="subtitle1" gutterBottom style={{ display: "flex", gap: 5, marginBottom: "20px" }}>
+                                <RadioButton />  Add new UPI ID
+                                <Typography style={{ marginLeft: "auto", color: "#5355e5" }}>How to<br></br> find</Typography>
+                              </Typography>
+                              <Leftside>
+                                <TextField label="Enter your UPI ID" variant="outlined" size="small" style={{ width: "72%" }} />
+                                <Button variant="contained" color="primary" sx={{ ml: 2 }}  >
+                                  Verify
+                                </Button>
+                                <Button variant="contained" sx={{ mt: 2, width: "100%", backgroundColor: "#7a7676ff" }} >
+                                  Pay ₹{(totalPrice - totalDiscount + 40 + 99).toLocaleString("en-IN")}
+                                </Button>
+                              </Leftside>
+                            </>
+                          )}
+                          {/* Credit / Debit / ATM Card */}
+                          {selectedMethod === "card" && (
+                            <Typography>
+                              <Box sx={{ maxWidth: 400, }} >
+                                <Typography variant="body2" sx={{ mb: 2 }}>
+                                  <strong>Note:</strong> Please ensure your card can be used for online transactions.{' '}
+                                  <Link href="#" underline="hover">
+                                    Learn More
+                                  </Link>
+                                </Typography>
+                                <TextField
+                                  label="Card Number"
+                                  placeholder="XXXX XXXX XXXX XXXX"
+                                  variant="outlined"
+                                  fullWidth
+                                  error={cardNumberError}
+                                  helperText={cardNumberError ? 'Card number is required' : ''}
+                                  value={cardNumber}
+                                  size="small"
+                                  onChange={(e) => {
+                                    setCardNumber(e.target.value);
+                                    setCardNumberError(false);
+                                  }}
+                                  sx={{ mb: 2 }}
+                                />
+                                <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                                  <TextField
+                                    label="Valid Thru"
+                                    placeholder="MM / YY"
+                                    variant="outlined"
+                                    size="small"
+                                    fullWidth
+                                    value={validThru}
+                                    onChange={(e) => setValidThru(e.target.value)}
+                                    error={!validThru}
+                                    helperText={!validThru ? 'Enter valid month/year' : ''}
+                                    sx={{ flex: 1 }}
+                                  />
+                                  <TextField
+                                    label="CVV"
+                                    placeholder="CVV"
+                                    type="password"
+                                    variant="outlined"
+                                    size="small"
+                                    fullWidth
+                                    value={cvv}
+                                    onChange={(e) => setCvv(e.target.value)}
+                                    error={!cvv}
+                                    helperText={!cvv ? 'CVV required' : ''}
+
+                                    sx={{ flex: 1 }}
+                                  />
+                                </Box>
+                                <Button
+                                  variant="contained"
+                                  fullWidth
+                                  size="large"
+                                  sx={{ bgcolor: '#fbc02d', color: '#000', fontWeight: 'bold' }}
+                                  onClick={handlePayment}
+                                >
+                                  Pay ₹{(totalPrice - totalDiscount + 40 + 99).toLocaleString("en-IN")}
+                                </Button>
+                              </Box>
+                            </Typography>
+                          )}
+                          {/* EMI */}
+                          {selectedMethod === "emi" && (
+                            <Typography style={{ overflowY: "auto", height: "100%" }} >
+                              <Box sx={{ maxWidth: 500, background: "#fff" }}  >
+                                <Typography variant="subtitle1" >
+                                  Get EMI in 3 easy steps
+                                </Typography>
+                                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2, mt: 1 }} >
+                                  <Box sx={{ textAlign: "center", flex: 1 }}>
+                                    <CreditCard size={20} color="#666" />
+                                    <Typography variant="body2">Choose bank</Typography>
+                                  </Box>
+
+                                  <Box sx={{ textAlign: "center", flex: 1 }}>
+                                    <Calendar size={20} color="#666" />
+                                    <Typography variant="body2">Choose Plan</Typography>
+                                  </Box>
+
+                                  <Box sx={{ textAlign: "center", flex: 1 }}>
+                                    <CheckBoxIcon size={20} color="#4caf50" />
+                                    <Typography variant="body2">Confirm & Pay</Typography>
+                                  </Box>
+                                </Box>
+                                {/* Bank EMI Options */}
+                                <RadioGroup value={selectedBank} onChange={(e) => setSelectedBank(e.target.value)}  >
+                                  {banks.map((bank) => (
+                                    <Box key={bank.id} sx={{
+                                      borderBottom: "1px solid #c2c2c2ff", py: 2, display: "flex",
+                                      flexDirection: "column", gap: 1,
+                                    }} >
+                                      <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                                        <FormControlLabel
+                                          value={bank.id}
+                                          control={<Radio />}
+                                          label={
+                                            <Box>
+                                              <Typography fontWeight={500}>{bank.name}</Typography>
+                                              <Typography variant="body2" color="success.main">
+                                                {bank.emi}
+                                              </Typography>
                                             </Box>
-                                            <Box sx={{ flex: 1, width: " 100%  ", padding: "20px", overflowY: "auto" }}>
+                                          }
+                                          sx={{ flex: 1 }}
+                                        />  <Box
+                                          component="img"
+                                          src={bank.logo}
+                                          alt={bank.name}
+                                          sx={{ width: 28, height: 28, objectFit: "contain", mr: 1 }}
+                                        />
 
-                                                {activeId === "UPI" && (
-                                                    <Typography variant="h6" gutterBottom>
-                                                        <form onSubmit={handleSubmit}>
-                                                            <Pay>
-                                                                <RadioGroup
-                                                                    aria-labelledby="demo-radio-buttons-group-label"
-                                                                    defaultValue="Add new UPI ID" name="radio-buttons-group"  >
-                                                                    <FormControlLabel value="Add new UPI ID" control={<Radio />} label="Add new UPI ID" />
+                                      </Box>
+                                      {selectedBank === bank.id && (
+                                        <Button variant="contained"
+                                          sx={{
+                                            mt: 1, width: "200px", borderRadius: "6px", textTransform: "none",
+                                            backgroundColor: "#1976d2", alignSelf: "flex-start",
+                                          }} >
+                                          See Plans
+                                        </Button>
+                                      )}
 
-                                                                </RadioGroup>
-                                                                <Howto  >How to<br></br> find?</Howto>
-                                                            </Pay>
-                                                            <Box sx={{ display: "flex", gap: 2, alignItems: "center", paddingLeft: "28px", paddingBottom: "20px" }}  >
-                                                                <TextField label="UPI ID" id="outlined-size-small"
-                                                                    placeholder="Enter your UPI ID" size="small" value={UPI}
-                                                                    onChange={(e) => setUPI(e.target.value)}
-                                                                    error={!!errors.UPI} helperText={errors.UPI} />
-                                                                <Button type="submit" style={{ background: "#2a55e5", color: "white" }}   >
-                                                                    Verify
-                                                                </Button>
-                                                            </Box>
-                                                            <Box style={{ paddingLeft: "28px" }}>
-                                                                <StyledButton  >
-                                                                    Pay ₹
-                                                                </StyledButton>
-                                                            </Box>
-                                                        </form>
-                                                    </Typography>)}
-                                                {activeId === "Credit / Debit / ATM Card" && (
-                                                    <Typography variant="h6" gutterBottom>
-                                                        <StyledText paragraph><b>Note:</b> Please ensure your card can be
-                                                            used for online transactions. </StyledText>
-                                                        <form onSubmit={handleSubmit}>
-                                                            <Pay>
-                                                                <TextField label="Card Number" id="outlined-size-small"
-                                                                    placeholder=" XXXX XXXX XXXX XXXX" size="small"
-                                                                    value={Card} onChange={(e) => setCard(e.target.value)}
-                                                                    error={!!errors.Card} helperText={errors.Card}
-                                                                    style={{ width: "100%" }} />
-                                                            </Pay>
-                                                            <Floating>
-                                                                <TextField label="Valid Thru" id="outlined-size-small"
-                                                                    placeholder="MM / YY" size="small" value={Valid} onChange={(e) => setValid(e.target.value)}
-                                                                    error={!!errors.Valid} helperText={errors.Valid} />
-                                                                <TextField label="CVV" id="outlined-size-small"
-                                                                    placeholder="CVV" value={CVV} onChange={(e) => setCVV(e.target.value)}
-                                                                    error={!!errors.CVV} helperText={errors.CVV} size="small" style={{ paddingLeft: "5px" }} />
-                                                            </Floating>
-                                                            <Box style={{ paddingLeft: "6px", paddingTop: "20px" }}>
-                                                                <StyledButton type="submit" style={{ background: "#ffc200", color: "black" }} >
-                                                                    Pay ₹
-                                                                </StyledButton>
-                                                            </Box>
-                                                        </form>
-                                                    </Typography>
-                                                )}
-                                                {activeId === "Net Banking" && (
-                                                    <Typography variant="h6" gutterBottom>
-                                                        <BlueAccordion>
-                                                            <AccordionSummary aria-controls="panel1-content" id="panel1-header" >
-                                                                <RadioGroup
-                                                                    aria-labelledby="demo-radio-buttons-group-label"
-                                                                    defaultValue="State Bank of India" name="radio-buttons-group" style={{ display: "flex" }}>
-                                                                    <FormControlLabel value="State Bank of India" control={<Radio />}
-                                                                        label="State Bank of India" />
-                                                                </RadioGroup>
-                                                                <Typography variant="h6" style={{ marginLeft: "auto" }}>   </Typography>
-                                                            </AccordionSummary>
-                                                            <WhiteAccordionDetails >
-                                                                <StyledButton type="submit" style={{ background: "#ffc200", color: "black" }} >
-                                                                    Pay ₹
-                                                                </StyledButton>
-                                                            </WhiteAccordionDetails>
-                                                        </BlueAccordion>
-                                                        <BlueAccordion   >
-                                                            <AccordionSummary aria-controls="panel1-content" id="panel1-header" >
-                                                                <RadioGroup
-                                                                    aria-labelledby="demo-radio-buttons-group-label"
-                                                                    name="radio-buttons-group" style={{ display: "flex" }}>
-                                                                    <FormControlLabel value="HDFC Bank" control={<Radio />}
-                                                                        label="HDFC Bank" />
-                                                                </RadioGroup>
-                                                                <Typography variant="h6" style={{ marginLeft: "auto" }}>   </Typography>
-                                                            </AccordionSummary>
-                                                            <WhiteAccordionDetails >
-                                                                <StyledButton type="submit" style={{ background: "#ffc200", color: "black" }} >
-                                                                    Pay ₹
-                                                                </StyledButton>
-                                                            </WhiteAccordionDetails>
-                                                        </BlueAccordion>
-                                                        <BlueAccordion   >
-                                                            <AccordionSummary aria-controls="panel1-content" id="panel1-header" >
-                                                                <RadioGroup
-                                                                    aria-labelledby="demo-radio-buttons-group-label"
-                                                                    name="radio-buttons-group" style={{ display: "flex" }}>
-                                                                    <FormControlLabel value="ICICI Bank" control={<Radio />}
-                                                                        label="ICICI Bank" />
-                                                                </RadioGroup>
-                                                                <Typography variant="h6" style={{ marginLeft: "auto" }}>   </Typography>
-                                                            </AccordionSummary>
-                                                            <WhiteAccordionDetails >
-                                                                <StyledButton type="submit" style={{ background: "#ffc200", color: "black" }} >
-                                                                    Pay ₹
-                                                                </StyledButton>
-                                                            </WhiteAccordionDetails>
-                                                        </BlueAccordion>
-                                                        <BlueAccordion   >
-                                                            s     <AccordionSummary aria-controls="panel1-content" id="panel1-header" >
-                                                                <RadioGroup
-                                                                    aria-labelledby="demo-radio-buttons-group-label"
-                                                                    name="radio " style={{ display: "flex" }}>
-                                                                    <FormControlLabel value="Kotak Mahindra Bank" control={<Radio />}
-                                                                        label="Kotak Mahindra Bank" />
-                                                                </RadioGroup>
-                                                                <Typography variant="h6" style={{ marginLeft: "auto" }}>   </Typography>
-                                                            </AccordionSummary>
-                                                            <WhiteAccordionDetails >
-                                                                <StyledButton type="submit" style={{ background: "#ffc200", color: "black" }} >
-                                                                    Pay ₹
-                                                                </StyledButton>
-                                                            </WhiteAccordionDetails>
-                                                        </BlueAccordion>
-                                                        <BlueAccordion   >
-                                                            <AccordionSummary aria-controls="panel1-content" id="panel1-header" >
-                                                                <RadioGroup
-                                                                    aria-labelledby="demo-radio-buttons-group-label"
-                                                                    name="radio-buttons-group" style={{ display: "flex" }}>
-                                                                    <FormControlLabel value="Axis Bank" control={<Radio />}
-                                                                        label="Axis Bank" />
-                                                                </RadioGroup>
-                                                                <Typography variant="h6" style={{ marginLeft: "auto" }}>   </Typography>
-                                                            </AccordionSummary>
-                                                            <WhiteAccordionDetails >
-                                                                <StyledButton type="submit" style={{ background: "#ffc200", color: "black" }} >
-                                                                    Pay ₹
-                                                                </StyledButton>
-                                                            </WhiteAccordionDetails>
-                                                        </BlueAccordion>
-                                                        <BlueAccordion   >
-                                                            <AccordionSummary aria-controls="panel1-content" id="panel1-header" >
-                                                                <RadioGroup
-                                                                    aria-labelledby="demo-radio-buttons-group-label"
-                                                                    name="radio-buttons-group" style={{ display: "flex" }}>
-                                                                    <FormControlLabel value="Federal Bank" control={<Radio />}
-                                                                        label="Federal Bank" />
-                                                                </RadioGroup>
-                                                                <Typography variant="h6" style={{ marginLeft: "auto" }}>   </Typography>
-                                                            </AccordionSummary>
-                                                            <WhiteAccordionDetails >
-                                                                <StyledButton type="submit" style={{ background: "#ffc200", color: "black" }} >
-                                                                    Pay ₹
-                                                                </StyledButton>
-                                                            </WhiteAccordionDetails>
-                                                        </BlueAccordion>
-                                                        <BlueAccordion   >
-                                                            <AccordionSummary aria-controls="panel1-content" id="panel1-header" >
-                                                                <RadioGroup
-                                                                    aria-labelledby="demo-radio-buttons-group-label"
-                                                                    name="radio-buttons-group" style={{ display: "flex" }}>
-                                                                    <FormControlLabel value="Indian Overseas Bank" control={<Radio />}
-                                                                        label="Indian Overseas Bank" />
-                                                                </RadioGroup>
-                                                                <Typography variant="h6" style={{ marginLeft: "auto" }}>   </Typography>
-                                                            </AccordionSummary>
-                                                            <WhiteAccordionDetails >
-                                                                <StyledButton type="submit" style={{ background: "#ffc200", color: "black" }} >
-                                                                    Pay ₹
-                                                                </StyledButton>
-                                                            </WhiteAccordionDetails>
-                                                        </BlueAccordion>
-                                                    </Typography>
-                                                )}
-                                                {activeId === "Cash on Delivery" && (
-                                                    <Typography variant="h6" gutterBottom>
-                                                        <StyledText paragraph>A ₹9 non-refundable fee is charged to help cover handling
-                                                            costs for cash on delivery orders.</StyledText>
-                                                        <StyledButton style={{ background: "#ffc200", color: "black" }} >
-                                                            Place Order
-                                                        </StyledButton>
-                                                    </Typography>
-                                                )}
-                                                {activeId === "Have a Flipkart Gift Card?" && (
-                                                    <Typography variant="h6" gutterBottom>
-                                                        <form onSubmit={handleSubmit}>
-                                                            <StyledText paragraph>Up to 15 gift cards can be added per transaction</StyledText>
-                                                            <Pay>
-                                                                <TextField label="Voucher Number " id="outlined-size-small"
-                                                                    placeholder="Enter voucher number" size="small"
-                                                                    value={Voucher} onChange={(e) => setVoucher(e.target.value)}
-                                                                    error={!!errors.Voucher} helperText={errors.Voucher}
-                                                                    style={{ width: "100%" }} />
-                                                            </Pay>
-                                                            <Pay>
-                                                                <TextField label="Voucher PIN" id="outlined-size-small"
-                                                                    placeholder="Enter voucher PIN" size="small"
-                                                                    value={Pin} onChange={(e) => setPin(e.target.value)}
-                                                                    error={!!errors.Pin} helperText={errors.Pin}
-                                                                    style={{ width: "100%" }} />
-                                                            </Pay>
-                                                            <StyledButton type="submit" style={{ background: "#2a55e5", color: "white" }} >
-                                                                Add Gift Card
-                                                            </StyledButton>
-                                                        </form>
-                                                    </Typography>
+                                    </Box>
+                                  ))}
+                                </RadioGroup>
+                              </Box>
 
-                                                )}
-                                            </Box>
-                                        </Box>
+                            </Typography>
+                          )}
 
-                                    </Grid >
-                                    <CartPayment size={4} >
-                                        <TotalView cartItems={cartItems} />
+                          {/* Netbanking */}
+                          {selectedMethod === "netbanking" && (
+                            <Typography style={{ overflowY: "auto", height: "100%" }}>
+                              <Box sx={{ background: "#fff", }}>
+                                <RadioGroup value={selectedBank1} onChange={(e) => setSelectedBank1(e.target.value)}>
+                                  {banks1.map((bank) => (
+                                    <Box key={bank.id} sx={{
+                                      borderBottom: "1px solid #eee", py: 2,
+                                      display: "flex", flexDirection: "column", gap: 1,
+                                    }} >
+                                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", }}>
+                                        <FormControlLabel value={bank.id} control={<Radio />}
+                                          label={<Typography fontWeight={500}>{bank.name}</Typography>} sx={{ flex: 1 }} />
 
-                                    </CartPayment>
+                                        <Box component="img" src={bank.logo} alt={bank.name}
+                                          sx={{ width: 28, height: 28, objectFit: "contain", mr: 2 }} />
+                                      </Box>
+                                      {/* Show Pay button only for selected bank */}
+                                      {selectedBank1 === bank.id && bank.amount && (
+                                        <Button variant="contained" sx={{
+                                          mt: 1, width: "88%", borderRadius: "6px", marginLeft: "28px",
+                                          fontWeight: 600, backgroundColor: "#f9c826", color: "#000",
+                                          "&:hover": { backgroundColor: "#e6b800" },
+                                        }}
+                                        >
+                                               Pay ₹{(totalPrice - totalDiscount + 40 + 99).toLocaleString("en-IN")}
+                                        </Button>
+                                      )}
+                                    </Box>
+                                  ))}
+                                </RadioGroup>
+                              </Box></Typography>
+                          )}
+                          {/* Cash on Delivery */}
+                          {selectedMethod === "cod" && (
+                            <Typography>
+                              <Box sx={{ maxWidth: 500, textAlign: "center", mt: 2, background: "#fff", }}  >
+                                {/* Info Text */}
+                                <Typography variant="body2" sx={{ mb: 2, color: "#555", fontSize: "14px" }}  >
+                                  38,690 people used online payment options in the last hour. <br />
+                                  Pay online now for safe and contactless delivery.
+                                </Typography>
 
-                                </StyledFinelpemt>
-                            </Item>
-                        </Grid>
-                    </Grid>
-                </Box>
-            </Container>
-        </div>
-    )
+                                {/* Place Order Button */}
+                                <Button variant="contained" fullWidth
+                                  sx={{
+                                    backgroundColor: "#f9c826", color: "#000", fontWeight: 600, textTransform: "none",
+                                    fontSize: "16px", borderRadius: "6px",
+                                    "&:hover": {
+                                      backgroundColor:
+
+                                        "#e6b800",
+                                    },
+                                  }}
+                                >
+                                  Place Order
+                                </Button>
+                              </Box>
+                            </Typography>
+                          )}
+                          {/* Have a Flipkart Gift Card */}
+                          {selectedMethod === "giftcard" && (
+                            <Typography> <Box
+                              sx={{ maxWidth: 500, background: "#fff", padding: 2, }}>
+                              {/* Info Text */}
+                              <Typography variant="body2" sx={{ mb: 2, color: "#9c9797ff", fontSize: "12px" }} >
+                                Up to 15 gift cards can be added per transaction
+                              </Typography>
+                              {/* Voucher Number Field */}
+                              <TextField label="Voucher Number" placeholder="Enter voucher number" fullWidth
+                                size='small' value={voucherNumber} onChange={(e) => setVoucherNumber(e.target.value)}
+                                error={voucherNumber.length > 0 && voucherNumber.length !== 16} helperText={
+                                  voucherNumber.length > 0 && voucherNumber.length !== 16
+                                    ? "Enter a valid 16 digit Voucher Number"
+                                    : " "} sx={{ mb: 2 }} />
+                              {/* Voucher PIN Field */}
+                              <TextField label="Voucher PIN" placeholder="Enter voucher PIN" fullWidth
+                                size='small' value={voucherPin} onChange={(e) => setVoucherPin(e.target.value)}
+                                error={voucherPin.length > 0 && voucherPin.length !== 6} helperText={
+                                  voucherPin.length > 0 && voucherPin.length !== 6
+                                    ? "Enter a valid 6 digit Voucher PIN"
+                                    : " "} sx={{ mb: 2 }} />
+                              {/* Add Gift Card Button */}
+                              <Button variant="contained" fullWidth sx={{
+                                backgroundColor: "#1a5cff", textTransform: "none",
+                                fontWeight: 600, fontSize: "15px", borderRadius: "6px",
+                                "&:hover": {
+                                  backgroundColor: "#154bcc",
+                                },
+                              }}
+                              >
+                                Add Gift Card
+                              </Button>
+                            </Box></Typography>
+                          )}
+                        </Box>
+                      </Box>
+                    </Box>
+                  </Grid >
+                  <CartPayment size={4}>
+                    <Box sx={{backgroundColor: "#f8faff",p: 2,borderRadius: 2, }}
+                    >
+                      {/* Price Row */}
+                      <Box sx={{display: "flex",justifyContent: "space-between",mb: 1,}}>
+                        <Typography sx={{ color: "#212121" }}>
+                          Price ({cartItems.length} items)
+                        </Typography>
+                        <Typography sx={{ color: "#212121", fontWeight: 500 }}>
+                          ₹{(totalPrice - totalDiscount + 40).toLocaleString("en-IN")}
+                        </Typography>
+                      </Box> 
+                      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1, }}>
+                        <Typography sx={{ color: "#212121" }}>Protect Promise Fee</Typography>
+                        <Typography sx={{ color: "#212121", fontWeight: 500 }}>₹99</Typography>
+                      </Box> 
+                      <Divider sx={{ my:2 , borderColor: "#e0e0e0" }} /> 
+                      <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                        <Typography sx={{ color: "#0a6cff" }}>
+                          Total Amount
+                        </Typography>
+                        <Typography  sx={{ color: "#0a6cff", fontWeight: 700, fontSize: "16px" }}>
+                          ₹{(totalPrice - totalDiscount + 40 + 99).toLocaleString("en-IN")}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </CartPayment>
+                </StyledFinelpemt>
+              </Item>
+            </Grid>
+          </Grid>
+        </Box>
+      </Container>
+    </div>
+  )
 }
-export default PaymentOpstion;
+export default PaymentOption;
